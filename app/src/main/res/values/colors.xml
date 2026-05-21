@@ -7,4 +7,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Prayer Schedule Colors -->
+    <color name="upcoming_prayer_bg">#E3F2FD</color>
+    <color name="upcoming_prayer_border">#2196F3</color>
+    <color name="past_prayer_bg">#FFFFFF</color>
+    <color name="past_prayer_border">#BDBDBD</color>
 </resources>
