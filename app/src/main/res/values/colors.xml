@@ -11,6 +11,8 @@
     <!-- Prayer Schedule Colors -->
     <color name="upcoming_prayer_bg">#E3F2FD</color>
     <color name="upcoming_prayer_border">#2196F3</color>
+    <color name="next_prayer_bg">#FFF3E0</color>
+    <color name="next_prayer_border">#FF9800</color>
     <color name="past_prayer_bg">#FFFFFF</color>
     <color name="past_prayer_border">#BDBDBD</color>
 </resources>

@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalTime
+import java.time.Duration
 
 class PrayerAdapter(
     private var data: List<PrayerScheduleEntity>,
@@ -47,8 +48,17 @@ class PrayerAdapter(
             // Check if prayer time is upcoming or past
             val isUpcoming = isPrayerUpcoming(item.time)
 
-            // Set background based on whether prayer is upcoming or past (safe fallback)
-            val backgroundResource = if (isUpcoming) R.drawable.bg_upcoming_prayer else R.drawable.bg_past_prayer
+            // find the next upcoming index to specially highlight it
+            val nextIndex = data.indexOfFirst { sch ->
+                runCatching { LocalTime.parse(sch.time) }.getOrNull()?.isAfter(LocalTime.now()) ?: false
+            }
+
+            // Set background based on whether prayer is the next upcoming / upcoming / past
+            val backgroundResource = when {
+                i == nextIndex -> R.drawable.bg_next_prayer
+                isUpcoming -> R.drawable.bg_upcoming_prayer
+                else -> R.drawable.bg_past_prayer
+            }
             try {
                 h.container.background = ContextCompat.getDrawable(h.container.context, backgroundResource)
             } catch (_: Exception) {
@@ -68,6 +78,27 @@ class PrayerAdapter(
                             val color = if (isUpcoming) R.color.purple_500 else android.R.color.darker_gray
                             h.status.setTextColor(ContextCompat.getColor(h.status.context, color))
                         }
+                        // Update subtitle text to show relative time for upcoming prayer
+                        try {
+                            val subTextView = (h.itemView.findViewById<TextView>(R.id.tvPrayerSub))
+                            if (isUpcoming) {
+                                val now = LocalTime.now()
+                                val target = runCatching { LocalTime.parse(item.time) }.getOrNull()
+                                if (target != null && target.isAfter(now)) {
+                                    val dur = Duration.between(now, target)
+                                    val hours = dur.toHours()
+                                    val minutes = dur.minusHours(hours).toMinutes()
+                                    val parts = mutableListOf<String>()
+                                    if (hours > 0) parts.add("${hours} jam")
+                                    if (minutes > 0) parts.add("${minutes} menit")
+                                    subTextView.text = if (parts.isNotEmpty()) "Dalam ${parts.joinToString(" ")}" else "Dalam beberapa menit"
+                                } else {
+                                    subTextView.text = ""
+                                }
+                            } else {
+                                subTextView.text = "Telah lewat"
+                            }
+                        } catch (_: Exception) {}
                     } catch (_: Exception) {
                         h.status.text = ""
                     }
