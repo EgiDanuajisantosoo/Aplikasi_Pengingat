@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">PengingatSholat</string>
     <string name="dashboard_title">Sistem Pengingat Ibadah</string>
-    <string name="dashboard_subtitle">Location awareness • scheduler • interactive notification • habit tracking</string>
+    <string name="dashboard_subtitle">11 Dzulqa dah 1445 H (Template)</string>
     <string name="section_location">Lokasi hari ini</string>
     <string name="section_next_prayer">Sholat berikutnya</string>
     <string name="section_habit">Progress ibadah</string>

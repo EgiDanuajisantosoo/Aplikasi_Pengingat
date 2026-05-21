@@ -16,8 +16,8 @@
     <color name="past_prayer_bg">#FFFFFF</color>
     <color name="past_prayer_border">#BDBDBD</color>
     <!-- Header / Accent colors -->
-    <color name="header_purple">#5B3EDD</color>
-    <color name="header_purple_light">#7E57FF</color>
+    <color name="header_purple">#5B6DFF</color>
+    <color name="header_purple_light">#7C8BFF</color>
     <color name="chip_done_bg">#E8F5E9</color>
     <color name="chip_done_border">#66BB6A</color>
     <color name="chip_now_bg">#FCE7E0</color>

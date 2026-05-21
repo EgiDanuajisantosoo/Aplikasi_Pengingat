@@ -9,10 +9,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.egidanuajisantoso.pengingatsholat.R
 import com.egidanuajisantoso.pengingatsholat.data.local.dao.PrayerDao
 import com.egidanuajisantoso.pengingatsholat.data.local.entity.PrayerScheduleEntity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.LocalTime
 import java.time.Duration
 
@@ -20,6 +16,12 @@ class PrayerAdapter(
     private var data: List<PrayerScheduleEntity>,
     private val dao: PrayerDao
 ) : RecyclerView.Adapter<PrayerAdapter.VH>() {
+    private enum class TimeStatus {
+        PAST,
+        NOW,
+        WAITING
+    }
+
     fun updateData(newData: List<PrayerScheduleEntity>) {
         data = newData
         notifyDataSetChanged()
@@ -44,76 +46,51 @@ class PrayerAdapter(
             val item = data[i]
             h.name.text = item.prayerName.replaceFirstChar { it.uppercase() }
             h.time.text = item.time
+            val status = resolveStatus(i)
 
-            // Check if prayer time is upcoming or past
-            val isUpcoming = isPrayerUpcoming(item.time)
+            // Card background follows 3-status model
+            val backgroundResource = when (status) {
+                TimeStatus.NOW -> R.drawable.bg_next_prayer
+                TimeStatus.WAITING -> R.drawable.bg_upcoming_prayer
+                TimeStatus.PAST -> R.drawable.bg_past_prayer
+            }
+            h.container.background = ContextCompat.getDrawable(h.container.context, backgroundResource)
 
-            // find the next upcoming index to specially highlight it
-            val nextIndex = data.indexOfFirst { sch ->
-                runCatching { LocalTime.parse(sch.time) }.getOrNull()?.isAfter(LocalTime.now()) ?: false
+            when (status) {
+                TimeStatus.NOW -> {
+                    h.status.text = "Sekarang"
+                    h.status.setTextColor(ContextCompat.getColor(h.status.context, R.color.chip_now_border))
+                    h.status.background = ContextCompat.getDrawable(h.status.context, R.drawable.chip_now)
+                }
+                TimeStatus.WAITING -> {
+                    h.status.text = "Menunggu"
+                    h.status.setTextColor(ContextCompat.getColor(h.status.context, android.R.color.darker_gray))
+                    h.status.background = ContextCompat.getDrawable(h.status.context, R.drawable.chip_wait)
+                }
+                TimeStatus.PAST -> {
+                    h.status.text = "Telah terlewat"
+                    h.status.setTextColor(ContextCompat.getColor(h.status.context, android.R.color.darker_gray))
+                    h.status.background = ContextCompat.getDrawable(h.status.context, R.drawable.chip_wait)
+                }
             }
 
-            // Set background based on whether prayer is the next upcoming / upcoming / past
-            val backgroundResource = when {
-                i == nextIndex -> R.drawable.bg_next_prayer
-                isUpcoming -> R.drawable.bg_upcoming_prayer
-                else -> R.drawable.bg_past_prayer
-            }
-            try {
-                h.container.background = ContextCompat.getDrawable(h.container.context, backgroundResource)
-            } catch (_: Exception) {
-                // ignore background apply errors
-            }
-
-            // Update status and status color based on log and upcoming state
-            CoroutineScope(Dispatchers.IO).launch {
-                val log = try { dao.getPrayerLog(item.date, item.prayerName) } catch (ex: Exception) { null }
-                withContext(Dispatchers.Main) {
-                    try {
-                        if (log?.isDone == true) {
-                            h.status.text = "Sudah"
-                            h.status.setTextColor(ContextCompat.getColor(h.status.context, R.color.chip_done_border))
-                            try { h.status.background = ContextCompat.getDrawable(h.status.context, R.drawable.chip_done) } catch (_: Exception) {}
-                        } else {
-                            // determine whether this item is the next upcoming one
-                            val nextIndex = data.indexOfFirst { sch -> runCatching { java.time.LocalTime.parse(sch.time) }.getOrNull()?.isAfter(java.time.LocalTime.now()) ?: false }
-                            if (i == nextIndex) {
-                                h.status.text = "Sekarang"
-                                h.status.setTextColor(ContextCompat.getColor(h.status.context, R.color.chip_now_border))
-                                try { h.status.background = ContextCompat.getDrawable(h.status.context, R.drawable.chip_now) } catch (_: Exception) {}
-                            } else if (isUpcoming) {
-                                h.status.text = "Menunggu"
-                                h.status.setTextColor(ContextCompat.getColor(h.status.context, android.R.color.darker_gray))
-                                try { h.status.background = ContextCompat.getDrawable(h.status.context, R.drawable.chip_wait) } catch (_: Exception) {}
-                            } else {
-                                h.status.text = "Telah lewat"
-                                h.status.setTextColor(ContextCompat.getColor(h.status.context, android.R.color.darker_gray))
-                                try { h.status.background = ContextCompat.getDrawable(h.status.context, R.drawable.chip_wait) } catch (_: Exception) {}
-                            }
-                        }
-                        // Update subtitle text to show relative time for upcoming prayer
-                        try {
-                            val subTextView = (h.itemView.findViewById<TextView>(R.id.tvPrayerSub))
-                            if (isUpcoming) {
-                                val now = LocalTime.now()
-                                val target = runCatching { LocalTime.parse(item.time) }.getOrNull()
-                                if (target != null && target.isAfter(now)) {
-                                    val dur = Duration.between(now, target)
-                                    val hours = dur.toHours()
-                                    val minutes = dur.minusHours(hours).toMinutes()
-                                    val parts = mutableListOf<String>()
-                                    if (hours > 0) parts.add("${hours} jam")
-                                    if (minutes > 0) parts.add("${minutes} menit")
-                                    subTextView.text = if (parts.isNotEmpty()) "Dalam ${parts.joinToString(" ")}" else "Dalam beberapa menit"
-                                } else {
-                                    subTextView.text = ""
-                                }
-                            } else {
-                                subTextView.text = "Telah lewat"
-                            }
-                        } catch (_: Exception) {}
-                    } catch (_: Exception) {
-                        h.status.text = ""
+            val subTextView = h.itemView.findViewById<TextView>(R.id.tvPrayerSub)
+            when (status) {
+                TimeStatus.NOW -> subTextView.text = "Sedang berlangsung"
+                TimeStatus.PAST -> subTextView.text = "Telah terlewat"
+                TimeStatus.WAITING -> {
+                    val now = LocalTime.now()
+                    val target = runCatching { LocalTime.parse(item.time) }.getOrNull()
+                    if (target != null && target.isAfter(now)) {
+                        val dur = Duration.between(now, target)
+                        val hours = dur.toHours()
+                        val minutes = dur.minusHours(hours).toMinutes()
+                        val parts = mutableListOf<String>()
+                        if (hours > 0) parts.add("${hours} jam")
+                        if (minutes > 0) parts.add("${minutes} menit")
+                        subTextView.text = if (parts.isNotEmpty()) "Dalam ${parts.joinToString(" ")}" else "Dalam beberapa menit"
+                    } else {
+                        subTextView.text = "Menunggu"
                     }
                 }
             }
@@ -129,16 +106,18 @@ class PrayerAdapter(
 
     override fun getItemCount() = data.size
     
-    /**
-     * Check if a prayer time (HH:mm format) is upcoming compared to current time
-     */
-    private fun isPrayerUpcoming(prayerTime: String): Boolean {
-        return try {
-            val time = LocalTime.parse(prayerTime)
-            val now = LocalTime.now()
-            time.isAfter(now)
-        } catch (e: Exception) {
-            false
+    // Determine status by prayer window: the latest prayer time <= now is "NOW".
+    private fun resolveStatus(position: Int): TimeStatus {
+        val now = LocalTime.now()
+        val currentIndex = data.indexOfLast { schedule ->
+            runCatching { LocalTime.parse(schedule.time) }.getOrNull()?.let { !it.isAfter(now) } ?: false
+        }
+
+        return when {
+            currentIndex == -1 -> TimeStatus.WAITING
+            position < currentIndex -> TimeStatus.PAST
+            position == currentIndex -> TimeStatus.NOW
+            else -> TimeStatus.WAITING
         }
     }
 }

@@ -14,22 +14,36 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.egidanuajisantoso.pengingatsholat.data.local.AppDatabase
-import com.egidanuajisantoso.pengingatsholat.data.local.dao.PrayerDao.StreakCalculator
 import com.egidanuajisantoso.pengingatsholat.data.local.entity.PrayerScheduleEntity
 import com.egidanuajisantoso.pengingatsholat.data.repository.PrayerRepository
 import com.egidanuajisantoso.pengingatsholat.location.GeocoderUtil
 import com.egidanuajisantoso.pengingatsholat.location.LocationHelper
 import com.egidanuajisantoso.pengingatsholat.ui.adapter.PrayerAdapter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var prayerAdapter: PrayerAdapter
     private lateinit var rvPrayer: RecyclerView
+    private lateinit var tvCityName: TextView
+    private lateinit var tvGregorianDate: TextView
+    private lateinit var tvHijriDate: TextView
+    private lateinit var tvHeaderPrayerName: TextView
+    private lateinit var tvHeaderTimeBadge: TextView
+    private lateinit var tvHeaderCountdown: TextView
+    private lateinit var tvHeaderCountdownSub: TextView
+    private lateinit var tvCalendarLink: TextView
+    private var latestSchedules: List<PrayerScheduleEntity> = emptyList()
+    private var countdownJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,11 +59,37 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        startRealtimeCountdownTicker()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        countdownJob?.cancel()
+        countdownJob = null
+    }
+
     private fun setupDashboardDefaults() {
-        findViewById<TextView>(R.id.tvLocationStatus).text = getString(R.string.location_loading)
-        findViewById<TextView>(R.id.tvNextPrayer).text = getString(R.string.next_prayer_loading)
-        findViewById<TextView>(R.id.tvSchedulerStatus).text = getString(R.string.scheduler_ready)
-        findViewById<TextView>(R.id.tvStreak).text = getString(R.string.streak_empty)
+        tvCityName = findViewById(R.id.tvCityName)
+        tvGregorianDate = findViewById(R.id.tvGregorianDate)
+        tvHijriDate = findViewById(R.id.tvHijriDate)
+        tvHeaderPrayerName = findViewById(R.id.tvHeaderPrayerName)
+        tvHeaderTimeBadge = findViewById(R.id.tvHeaderTimeBadge)
+        tvHeaderCountdown = findViewById(R.id.tvHeaderCountdown)
+        tvHeaderCountdownSub = findViewById(R.id.tvHeaderCountdownSub)
+        tvCalendarLink = findViewById(R.id.tvCalendarLink)
+
+        tvCityName.text = getString(R.string.location_loading)
+        tvGregorianDate.text = formatGregorianDate(LocalDate.now())
+        tvHijriDate.text = getString(R.string.dashboard_subtitle)
+        tvHeaderPrayerName.text = getString(R.string.next_prayer_loading)
+        tvHeaderTimeBadge.text = "--:-- WIB"
+        tvHeaderCountdown.text = "--:--:--"
+        tvHeaderCountdownSub.text = getString(R.string.next_prayer_loading)
+        tvCalendarLink.setOnClickListener {
+            rvPrayer.smoothScrollToPosition(0)
+        }
     }
 
     private fun setupPrayerList() {
@@ -102,22 +142,18 @@ class MainActivity : AppCompatActivity() {
                             prayerDao.getScheduleByDate(today)
                         }
 
-                        val streak = StreakCalculator.calculate(prayerDao.getPerfectDays())
-
                         withContext(Dispatchers.Main) {
                             prayerAdapter.updateData(schedules)
-                            updateDashboard(finalCityLabel, schedules, streak)
+                            updateDashboard(finalCityLabel, schedules)
                         }
                     } catch (e: Exception) {
                         Log.e("MAIN", "Setup failed", e)
 
                         val cachedSchedules = prayerDao.getScheduleByDate(today)
-                        val streak = StreakCalculator.calculate(prayerDao.getPerfectDays())
 
                         withContext(Dispatchers.Main) {
                             prayerAdapter.updateData(cachedSchedules)
-                            updateDashboard(finalCityLabel, cachedSchedules, streak)
-                            findViewById<TextView>(R.id.tvSchedulerStatus).text = getString(R.string.sync_failed)
+                            updateDashboard(finalCityLabel, cachedSchedules)
                         }
                     }
                 }
@@ -135,14 +171,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateDashboard(
         cityLabel: String,
-        schedules: List<PrayerScheduleEntity>,
-        streak: Int
+        schedules: List<PrayerScheduleEntity>
     ) {
-        findViewById<TextView>(R.id.tvLocationStatus).text =
-            getString(R.string.location_status_format, cityLabel)
-        findViewById<TextView>(R.id.tvNextPrayer).text = resolveNextPrayerText(schedules)
-        findViewById<TextView>(R.id.tvSchedulerStatus).text = getString(R.string.scheduler_ready)
-        findViewById<TextView>(R.id.tvStreak).text = getString(R.string.streak_format, streak)
+        latestSchedules = schedules
+        tvCityName.text = cityLabel
+        tvGregorianDate.text = formatGregorianDate(LocalDate.now())
+        tvHijriDate.text = getString(R.string.dashboard_subtitle)
+
+        updateHeaderRealtime()
+
         // Scroll to next upcoming prayer for better UX
         try {
             val now = LocalTime.now()
@@ -156,36 +193,45 @@ class MainActivity : AppCompatActivity() {
             // ignore
         }
 
-        // Update header next prayer card views
-        try {
-            val now = LocalTime.now()
-            val next = schedules.asSequence()
-                .mapNotNull { s -> runCatching { LocalTime.parse(s.time) }.getOrNull()?.let { s to it } }
-                .firstOrNull { (_, t) -> !t.isBefore(now) }
+    }
 
-            val tvHeaderName = findViewById<TextView>(R.id.tvHeaderPrayerName)
-            val tvHeaderTime = findViewById<TextView>(R.id.tvHeaderTimeBadge)
-            val tvHeaderCountdown = findViewById<TextView>(R.id.tvHeaderCountdown)
-            val tvHeaderCountdownSub = findViewById<TextView>(R.id.tvHeaderCountdownSub)
+    private fun formatGregorianDate(date: LocalDate): String {
+        val formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale("id", "ID"))
+        return date.format(formatter).uppercase(Locale("id", "ID"))
+    }
 
-            if (next != null) {
-                val (sch, t) = next
-                tvHeaderName.text = sch.prayerName.replaceFirstChar { it.uppercase() }
-                tvHeaderTime.text = sch.time + " WIB"
-                val dur = java.time.Duration.between(now, t)
-                val hours = dur.toHours()
-                val minutes = dur.minusHours(hours).toMinutes()
-                val sec = dur.minusHours(hours).minusMinutes(minutes).seconds
-                tvHeaderCountdown.text = String.format("%02d:%02d:%02d", hours, minutes, sec)
-                tvHeaderCountdownSub.text = "Menuju waktu adzan"
-            } else {
-                tvHeaderName.text = "-"
-                tvHeaderTime.text = "--:-- WIB"
-                tvHeaderCountdown.text = "--:--:--"
-                tvHeaderCountdownSub.text = "Tidak ada jadwal"
+    private fun startRealtimeCountdownTicker() {
+        if (countdownJob?.isActive == true) return
+        countdownJob = lifecycleScope.launch {
+            while (isActive) {
+                updateHeaderRealtime()
+                delay(1000)
             }
-        } catch (e: Exception) {
-            // ignore header update errors
+        }
+    }
+
+    private fun updateHeaderRealtime() {
+        val now = LocalTime.now()
+        val next = latestSchedules.asSequence()
+            .mapNotNull { s -> runCatching { LocalTime.parse(s.time) }.getOrNull()?.let { s to it } }
+            .firstOrNull { (_, t) -> !t.isBefore(now) }
+
+        if (next != null) {
+            val (sch, t) = next
+            tvHeaderPrayerName.text = sch.prayerName.replaceFirstChar { it.uppercase() }
+            tvHeaderTimeBadge.text = "${sch.time} WIB"
+
+            val dur = java.time.Duration.between(now, t)
+            val hours = dur.toHours().coerceAtLeast(0)
+            val minutes = dur.minusHours(hours).toMinutes().coerceAtLeast(0)
+            val seconds = dur.minusHours(hours).minusMinutes(minutes).seconds.coerceAtLeast(0)
+            tvHeaderCountdown.text = String.format("-%02d:%02d:%02d", hours, minutes, seconds)
+            tvHeaderCountdownSub.text = "Menuju waktu adzan"
+        } else {
+            tvHeaderPrayerName.text = getString(R.string.next_prayer_finished)
+            tvHeaderTimeBadge.text = "--:-- WIB"
+            tvHeaderCountdown.text = "--:--:--"
+            tvHeaderCountdownSub.text = "Tidak ada jadwal"
         }
     }
 
@@ -199,26 +245,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun resolveNextPrayerText(schedules: List<PrayerScheduleEntity>): String {
-        if (schedules.isEmpty()) return getString(R.string.next_prayer_loading)
-
-        val now = LocalTime.now()
-        val nextPrayer = schedules.asSequence()
-            .mapNotNull { schedule ->
-                runCatching { LocalTime.parse(schedule.time) }
-                    .getOrNull()
-                    ?.let { parsedTime -> schedule to parsedTime }
-            }
-            .firstOrNull { (_, parsedTime) -> !parsedTime.isBefore(now) }
-
-        return if (nextPrayer != null) {
-            val (schedule, _) = nextPrayer
-            val prayerName = schedule.prayerName.replaceFirstChar { it.uppercase() }
-            getString(R.string.next_prayer_value, prayerName, schedule.time)
-        } else {
-            getString(R.string.next_prayer_finished)
-        }
-    }
 
     private fun hasLocationPermission(): Boolean {
         return ActivityCompat.checkSelfPermission(

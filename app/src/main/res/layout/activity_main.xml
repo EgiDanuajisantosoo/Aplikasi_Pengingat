@@ -2,238 +2,267 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_main"
+    android:background="@color/white"
     android:orientation="vertical"
     android:padding="20dp">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/dashboard_title"
-        android:textColor="@color/black"
-        android:textSize="24sp"
-        android:textStyle="bold" />
+        android:orientation="vertical">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/dashboard_subtitle"
-        android:textColor="#666666"
-        android:textSize="13sp" />
-
-    <!-- Header: Next Prayer Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/headerNextContainer"
-        android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:layout_marginBottom="16dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="@color/header_purple">
-
-        <RelativeLayout
+        <!-- Top city row -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="16dp">
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tvHeaderLabel"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvCityName"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Sholat Berikutnya"
-                android:textColor="@android:color/white"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tvHeaderTimeBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentEnd="true"
-                android:background="@android:color/white"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:text="12:15 WIB"
-                android:textColor="@color/header_purple"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tvHeaderPrayerName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tvHeaderLabel"
-                android:layout_marginTop="12dp"
-                android:text="Dzuhur"
-                android:textColor="@android:color/white"
-                android:textSize="28sp"
+                android:layout_weight="1"
+                android:text="Jakarta Pusat"
+                android:textColor="#222222"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tvHeaderCountdown"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/tvHeaderPrayerName"
-                android:layout_alignParentEnd="true"
-                android:text="-02:45:12"
-                android:textColor="@android:color/white"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="14dp"
+                android:contentDescription="notification"
+                app:srcCompat="@drawable/ic_notifications_outline"
+                android:tint="#667085" />
 
-            <TextView
-                android:id="@+id/tvHeaderCountdownSub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tvHeaderPrayerName"
-                android:layout_marginTop="8dp"
-                android:text="Menuju waktu adzan"
-                android:textColor="#E0E0E0"
-                android:textSize="12sp" />
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="location"
+                app:srcCompat="@drawable/ic_location_outline"
+                android:tint="#667085" />
+        </LinearLayout>
 
-            <Button
-                android:id="@+id/btnHeaderDone"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentBottom="true"
-                android:text="Tandai Sudah"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="8dp"
-                android:backgroundTint="#FFFFFF"
-                android:textColor="@color/header_purple" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="18dp"
+            android:background="#E5E7EB" />
 
-            <Button
-                android:id="@+id/btnHeaderLater"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_alignParentBottom="true"
-                android:layout_toEndOf="@id/btnHeaderDone"
-                android:text="Tunda"
-                android:backgroundTint="#FFFFFF"
-                android:textColor="@color/header_purple" />
+        <TextView
+            android:id="@+id/tvGregorianDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SENIN, 20 MEI 2024"
+            android:textColor="#667085"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1" />
 
-        </RelativeLayout>
-    </com.google.android.material.card.MaterialCardView>
+        <TextView
+            android:id="@+id/tvHijriDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="11 Dzulqa'dah 1445 H"
+            android:textColor="#7C8AA5"
+            android:textSize="13sp" />
 
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        app:cardBackgroundColor="#F7F7F7"
-        app:cardCornerRadius="18dp"
-        app:cardElevation="0dp"
-        app:contentPadding="16dp">
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/headerNextContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="14dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@color/header_purple">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="260dp"
+                android:padding="20dp">
+
+                <View
+                    android:layout_width="140dp"
+                    android:layout_height="140dp"
+                    android:layout_gravity="end|top"
+                    android:layout_marginTop="-10dp"
+                    android:layout_marginEnd="-30dp"
+                    android:background="@drawable/bg_hero_circle" />
+
+                <View
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_gravity="start|bottom"
+                    android:layout_marginStart="-18dp"
+                    android:layout_marginBottom="-10dp"
+                    android:background="@drawable/bg_hero_circle" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tvHeaderLabel"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Sholat Berikutnya"
+                            android:textColor="#DCD7FF"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvHeaderTimeBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_header_badge"
+                            android:paddingLeft="10dp"
+                            android:paddingTop="6dp"
+                            android:paddingRight="10dp"
+                            android:paddingBottom="6dp"
+                            android:text="12:15 WIB"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvHeaderPrayerName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Dzuhur"
+                        android:textColor="@android:color/white"
+                        android:textSize="30sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <FrameLayout
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:background="@drawable/bg_hero_icon">
+
+                            <!-- Example best practice: use only srcCompat OR src (not both). -->
+                            <androidx.appcompat.widget.AppCompatImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="clock"
+                                android:tint="@color/white"
+                                app:srcCompat="@drawable/baseline_watch_later_24" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvHeaderCountdown"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="-02:45:12"
+                                android:textColor="@android:color/white"
+                                android:textSize="22sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvHeaderCountdownSub"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Menuju waktu adzan"
+                                android:textColor="#D9D8FF"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom"
+                        android:layout_marginTop="24dp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnHeaderDone"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_header_button_white"
+                            android:backgroundTint="@null"
+                            android:text="Tandai Sudah"
+                            android:textAllCaps="false"
+                            android:textColor="@color/black"
+                            android:textStyle="bold"
+                            app:backgroundTint="@null"
+                            app:rippleColor="@color/chip_done_bg" />
+
+                        <View
+                            android:layout_width="12dp"
+                            android:layout_height="1dp" />
+
+                        <Button
+                            android:id="@+id/btnHeaderLater"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_header_button_white"
+                            android:backgroundTint="@null"
+                            android:text="Tunda"
+                            android:textAllCaps="false"
+                            android:textColor="@color/black"
+                            android:textStyle="bold"
+                            app:backgroundTint="@null" />
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_marginBottom="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/section_location"
-                android:textColor="#666666"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvLocationStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textColor="#111111"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        app:cardBackgroundColor="#F7F7F7"
-        app:cardCornerRadius="18dp"
-        app:cardElevation="0dp"
-        app:contentPadding="16dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/section_next_prayer"
-                android:textColor="#666666"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvNextPrayer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textColor="#111111"
+                android:layout_weight="1"
+                android:text="Jadwal Sholat"
+                android:textColor="#1F2937"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvSchedulerStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textColor="#666666"
-                android:textSize="12sp" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        app:cardBackgroundColor="#F7F7F7"
-        app:cardCornerRadius="18dp"
-        app:cardElevation="0dp"
-        app:contentPadding="16dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
+                android:id="@+id/tvCalendarLink"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/section_habit"
-                android:textColor="#666666"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvStreak"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="@string/streak_empty"
-                android:textColor="#111111"
-                android:textSize="20sp"
+                android:text="Lihat Kalender"
+                android:textColor="@color/header_purple_light"
+                android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:text="@string/section_schedule"
-        android:textColor="#111111"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvPrayer"
@@ -241,4 +270,5 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:background="@android:color/white" />
+
 </LinearLayout>

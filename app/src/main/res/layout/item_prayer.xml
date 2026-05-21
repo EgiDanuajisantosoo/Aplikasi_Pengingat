@@ -6,27 +6,35 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/white"
     app:strokeWidth="0dp"
-    android:foregroundTintMode="src_over"
     android:clickable="true"
-    android:focusable="true"
-    android:padding="12dp">
+    android:focusable="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:padding="12dp">
 
-        <ImageView
-            android:id="@+id/ivPrayerIcon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_mosque"
-            android:contentDescription="icon"
-            android:tint="@color/purple_500"
-            android:layout_marginEnd="12dp" />
+        <!-- Icon with circular background -->
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="12dp"
+            android:backgroundTint="#F5F5F5">
+
+            <ImageView
+                android:id="@+id/ivPrayerIcon"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_mosque"
+                android:tint="@color/purple_500"
+                android:contentDescription="icon" />
+        </FrameLayout>
 
         <LinearLayout
             android:orientation="vertical"
@@ -46,7 +54,7 @@
             <TextView
                 android:id="@+id/tvPrayerTime"
                 android:textColor="#444444"
-                android:text="04:35"
+                android:text="04:35 WIB"
                 android:textSize="14sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
@@ -55,19 +63,39 @@
                 android:id="@+id/tvPrayerSub"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="4dp"
                 android:textColor="#757575"
                 android:textSize="12sp"
                 android:text="" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvStatus"
-            android:text="✔"
-            android:textSize="18sp"
-            android:textColor="#2E7D32"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:text=""
+                android:textSize="12sp"
+                android:textColor="#444444"
+                android:layout_marginEnd="8dp" />
+
+            <ImageView
+                android:id="@+id/ivChevron"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_chevron_right"
+                android:tint="#BDBDBD"
+                android:contentDescription="" />
+        </LinearLayout>
 
     </LinearLayout>
 
