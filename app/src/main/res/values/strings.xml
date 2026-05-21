@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">PengingatSholat</string>
+    <string name="dashboard_title">Sistem Pengingat Ibadah</string>
+    <string name="dashboard_subtitle">Location awareness • scheduler • interactive notification • habit tracking</string>
+    <string name="section_location">Lokasi hari ini</string>
+    <string name="section_next_prayer">Sholat berikutnya</string>
+    <string name="section_habit">Progress ibadah</string>
+    <string name="section_schedule">Jadwal sholat hari ini</string>
+    <string name="location_loading">Mencari lokasi...</string>
+    <string name="location_unknown">Lokasi belum terdeteksi</string>
+    <string name="fallback_city">Jakarta (fallback)</string>
+    <string name="scheduler_ready">Scheduler aktif • notifikasi interaktif siap</string>
+    <string name="next_prayer_loading">Mencari jadwal sholat berikutnya...</string>
+    <string name="next_prayer_value">%1$s • %2$s</string>
+    <string name="next_prayer_finished">Semua sholat hari ini telah lewat</string>
+    <string name="streak_format">Streak: %1$d hari</string>
+    <string name="streak_empty">Streak: 0 hari</string>
+    <string name="location_status_format">Lokasi: %1$s</string>
+    <string name="sync_failed">Sinkronisasi gagal, memakai data lokal.</string>
+</resources>
