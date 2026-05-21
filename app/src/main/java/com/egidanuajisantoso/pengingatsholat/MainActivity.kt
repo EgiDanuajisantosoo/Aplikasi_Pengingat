@@ -155,6 +155,38 @@ class MainActivity : AppCompatActivity() {
         } catch (ex: Exception) {
             // ignore
         }
+
+        // Update header next prayer card views
+        try {
+            val now = LocalTime.now()
+            val next = schedules.asSequence()
+                .mapNotNull { s -> runCatching { LocalTime.parse(s.time) }.getOrNull()?.let { s to it } }
+                .firstOrNull { (_, t) -> !t.isBefore(now) }
+
+            val tvHeaderName = findViewById<TextView>(R.id.tvHeaderPrayerName)
+            val tvHeaderTime = findViewById<TextView>(R.id.tvHeaderTimeBadge)
+            val tvHeaderCountdown = findViewById<TextView>(R.id.tvHeaderCountdown)
+            val tvHeaderCountdownSub = findViewById<TextView>(R.id.tvHeaderCountdownSub)
+
+            if (next != null) {
+                val (sch, t) = next
+                tvHeaderName.text = sch.prayerName.replaceFirstChar { it.uppercase() }
+                tvHeaderTime.text = sch.time + " WIB"
+                val dur = java.time.Duration.between(now, t)
+                val hours = dur.toHours()
+                val minutes = dur.minusHours(hours).toMinutes()
+                val sec = dur.minusHours(hours).minusMinutes(minutes).seconds
+                tvHeaderCountdown.text = String.format("%02d:%02d:%02d", hours, minutes, sec)
+                tvHeaderCountdownSub.text = "Menuju waktu adzan"
+            } else {
+                tvHeaderName.text = "-"
+                tvHeaderTime.text = "--:-- WIB"
+                tvHeaderCountdown.text = "--:--:--"
+                tvHeaderCountdownSub.text = "Tidak ada jadwal"
+            }
+        } catch (e: Exception) {
+            // ignore header update errors
+        }
     }
 
     // simple vertical spacing decoration

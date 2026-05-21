@@ -71,12 +71,25 @@ class PrayerAdapter(
                 withContext(Dispatchers.Main) {
                     try {
                         if (log?.isDone == true) {
-                            h.status.text = "✔"
-                            h.status.setTextColor(ContextCompat.getColor(h.status.context, R.color.teal_700))
+                            h.status.text = "Sudah"
+                            h.status.setTextColor(ContextCompat.getColor(h.status.context, R.color.chip_done_border))
+                            try { h.status.background = ContextCompat.getDrawable(h.status.context, R.drawable.chip_done) } catch (_: Exception) {}
                         } else {
-                            h.status.text = if (isUpcoming) "⬆" else "⏳"
-                            val color = if (isUpcoming) R.color.purple_500 else android.R.color.darker_gray
-                            h.status.setTextColor(ContextCompat.getColor(h.status.context, color))
+                            // determine whether this item is the next upcoming one
+                            val nextIndex = data.indexOfFirst { sch -> runCatching { java.time.LocalTime.parse(sch.time) }.getOrNull()?.isAfter(java.time.LocalTime.now()) ?: false }
+                            if (i == nextIndex) {
+                                h.status.text = "Sekarang"
+                                h.status.setTextColor(ContextCompat.getColor(h.status.context, R.color.chip_now_border))
+                                try { h.status.background = ContextCompat.getDrawable(h.status.context, R.drawable.chip_now) } catch (_: Exception) {}
+                            } else if (isUpcoming) {
+                                h.status.text = "Menunggu"
+                                h.status.setTextColor(ContextCompat.getColor(h.status.context, android.R.color.darker_gray))
+                                try { h.status.background = ContextCompat.getDrawable(h.status.context, R.drawable.chip_wait) } catch (_: Exception) {}
+                            } else {
+                                h.status.text = "Telah lewat"
+                                h.status.setTextColor(ContextCompat.getColor(h.status.context, android.R.color.darker_gray))
+                                try { h.status.background = ContextCompat.getDrawable(h.status.context, R.drawable.chip_wait) } catch (_: Exception) {}
+                            }
                         }
                         // Update subtitle text to show relative time for upcoming prayer
                         try {
