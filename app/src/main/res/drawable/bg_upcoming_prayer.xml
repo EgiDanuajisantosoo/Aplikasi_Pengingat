@@ -6,4 +6,3 @@
         android:color="@color/upcoming_prayer_border" />
     <corners android:radius="8dp" />
 </shape>
-
