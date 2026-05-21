@@ -1,9 +1,8 @@
 package com.egidanuajisantoso.pengingatsholat.ui.adapter
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import com.google.android.material.card.MaterialCardView
+import android.view.View
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -25,7 +24,8 @@ class PrayerAdapter(
         notifyDataSetChanged()
     }
     inner class VH(v: View) : RecyclerView.ViewHolder(v) {
-        val container: MaterialCardView = v.findViewById(R.id.itemPrayerContainer)
+        // use a generic View for safety to avoid ClassCastException on some devices
+        val container: View = v.findViewById(R.id.itemPrayerContainer)
         val name: TextView = v.findViewById(R.id.tvPrayerName)
         val time: TextView = v.findViewById(R.id.tvPrayerTime)
         val status: TextView = v.findViewById(R.id.tvStatus)
@@ -39,30 +39,47 @@ class PrayerAdapter(
     }
 
     override fun onBindViewHolder(h: VH, i: Int) {
-        val item = data[i]
-        h.name.text = item.prayerName.replaceFirstChar { it.uppercase() }
-        h.time.text = item.time
+        try {
+            val item = data[i]
+            h.name.text = item.prayerName.replaceFirstChar { it.uppercase() }
+            h.time.text = item.time
 
-        // Check if prayer time is upcoming or past
-        val isUpcoming = isPrayerUpcoming(item.time)
-        
-        // Set background based on whether prayer is upcoming or past
-        val backgroundResource = if (isUpcoming) R.drawable.bg_upcoming_prayer else R.drawable.bg_past_prayer
-        h.container.background = ContextCompat.getDrawable(h.container.context, backgroundResource)
+            // Check if prayer time is upcoming or past
+            val isUpcoming = isPrayerUpcoming(item.time)
 
-        // Update status and status color based on log and upcoming state
-        CoroutineScope(Dispatchers.IO).launch {
-            val log = dao.getPrayerLog(item.date, item.prayerName)
-            withContext(Dispatchers.Main) {
-                if (log?.isDone == true) {
-                    h.status.text = "✔"
-                    h.status.setTextColor(ContextCompat.getColor(h.status.context, R.color.teal_700))
-                } else {
-                    h.status.text = if (isUpcoming) "⬆" else "⏳"
-                    val color = if (isUpcoming) R.color.purple_500 else android.R.color.darker_gray
-                    h.status.setTextColor(ContextCompat.getColor(h.status.context, color))
+            // Set background based on whether prayer is upcoming or past (safe fallback)
+            val backgroundResource = if (isUpcoming) R.drawable.bg_upcoming_prayer else R.drawable.bg_past_prayer
+            try {
+                h.container.background = ContextCompat.getDrawable(h.container.context, backgroundResource)
+            } catch (_: Exception) {
+                // ignore background apply errors
+            }
+
+            // Update status and status color based on log and upcoming state
+            CoroutineScope(Dispatchers.IO).launch {
+                val log = try { dao.getPrayerLog(item.date, item.prayerName) } catch (ex: Exception) { null }
+                withContext(Dispatchers.Main) {
+                    try {
+                        if (log?.isDone == true) {
+                            h.status.text = "✔"
+                            h.status.setTextColor(ContextCompat.getColor(h.status.context, R.color.teal_700))
+                        } else {
+                            h.status.text = if (isUpcoming) "⬆" else "⏳"
+                            val color = if (isUpcoming) R.color.purple_500 else android.R.color.darker_gray
+                            h.status.setTextColor(ContextCompat.getColor(h.status.context, color))
+                        }
+                    } catch (_: Exception) {
+                        h.status.text = ""
+                    }
                 }
             }
+        } catch (e: Exception) {
+            // prevent adapter crashes; show safe fallback
+            try {
+                h.name.text = "-"
+                h.time.text = "--:--"
+                h.status.text = ""
+            } catch (_: Exception) {}
         }
     }
 

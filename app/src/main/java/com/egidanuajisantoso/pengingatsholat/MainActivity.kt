@@ -29,6 +29,7 @@ import java.time.LocalTime
 class MainActivity : AppCompatActivity() {
 
     private lateinit var prayerAdapter: PrayerAdapter
+    private lateinit var rvPrayer: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,14 +53,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupPrayerList() {
-        val rv = findViewById<RecyclerView>(R.id.rvPrayer)
-        rv.layoutManager = LinearLayoutManager(this)
+        rvPrayer = findViewById(R.id.rvPrayer)
+        rvPrayer.layoutManager = LinearLayoutManager(this)
+        // Add spacing between items
+        val spacingDp = 8
+        val scale = resources.displayMetrics.density
+        val spacingPx = (spacingDp * scale + 0.5f).toInt()
+        rvPrayer.addItemDecoration(VerticalSpaceItemDecoration(spacingPx))
+        // Allow items to have outer padding visible
+        rvPrayer.clipToPadding = false
+        rvPrayer.setPadding(0, spacingPx, 0, spacingPx)
 
         prayerAdapter = PrayerAdapter(
             emptyList(),
             AppDatabase.getInstance(this).prayerDao()
         )
-        rv.adapter = prayerAdapter
+        rvPrayer.adapter = prayerAdapter
     }
 
     private fun setupTodaySchedule() {
@@ -134,6 +143,28 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvNextPrayer).text = resolveNextPrayerText(schedules)
         findViewById<TextView>(R.id.tvSchedulerStatus).text = getString(R.string.scheduler_ready)
         findViewById<TextView>(R.id.tvStreak).text = getString(R.string.streak_format, streak)
+        // Scroll to next upcoming prayer for better UX
+        try {
+            val now = LocalTime.now()
+            val nextIndex = schedules.indexOfFirst { sch ->
+                runCatching { LocalTime.parse(sch.time) }.getOrNull()?.isAfter(now) ?: false
+            }
+            if (nextIndex >= 0) {
+                rvPrayer.post { rvPrayer.smoothScrollToPosition(nextIndex) }
+            }
+        } catch (ex: Exception) {
+            // ignore
+        }
+    }
+
+    // simple vertical spacing decoration
+    class VerticalSpaceItemDecoration(private val verticalSpaceHeight: Int) : RecyclerView.ItemDecoration() {
+        override fun getItemOffsets(outRect: android.graphics.Rect, view: android.view.View, parent: RecyclerView, state: RecyclerView.State) {
+            val position = parent.getChildAdapterPosition(view)
+            if (position == RecyclerView.NO_POSITION) return
+            outRect.top = if (position == 0) verticalSpaceHeight else 0
+            outRect.bottom = verticalSpaceHeight
+        }
     }
 
     private fun resolveNextPrayerText(schedules: List<PrayerScheduleEntity>): String {

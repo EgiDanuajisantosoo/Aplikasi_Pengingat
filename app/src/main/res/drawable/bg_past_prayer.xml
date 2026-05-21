@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/past_prayer_bg" />
-    <stroke
-        android:width="1dp"
-        android:color="@color/past_prayer_border" />
-    <corners android:radius="8dp" />
+	<solid android:color="@color/past_prayer_bg" />
+	<stroke
+		android:width="1dp"
+		android:color="@color/past_prayer_border" />
+	<corners android:radius="8dp" />
 </shape>
+
 
